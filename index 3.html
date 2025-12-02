@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диалоговый тренажер | Корпоративная версия</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========== ОСНОВНЫЕ СТИЛИ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ========== КОНТЕЙНЕРЫ ========== */
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 1200px;
+            width: 100%;
+            display: none;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10a37f 0%, #0d8c6c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* ========== МОДАЛЬНОЕ ОКНО ========== */
+        .modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* ========== ФОРМЫ ========== */
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* ========== КНОПКИ ========== */
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10a37f 0%, #0d8c6c 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 163, 127, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* ========== СООБЩЕНИЯ ========== */
+        .error-message {
+            background: #fee;
+            border: 1px solid #f99;
+            color: #c00;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #efe;
+            border: 1px solid #9f9;
+            color: #090;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        /* ========== ИНФОРМАЦИОННЫЕ БЛОКИ ========== */
+        .info-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        .info-box h4 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rules-list {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .rules-list li {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        /* ========== ЗАГРУЗКА ========== */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10a37f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========== ВКЛАДКИ ========== */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 2px;
+        }
+
+        .tab.active {
+            background: #10a37f;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== СТАТИСТИКА ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-top: 4px solid #10a37f;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #10a37f;
+            margin: 10px 0;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* ========== БЕЙДЖИ ========== */
+        .vertical-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* ========== ПАНЕЛЬ ПОЛЬЗОВАТЕЛЯ ========== */
+        .user-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            color: white;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.4);
+        }
+
+        /* ========== БЕЗОПАСНОСТЬ ========== */
+        .security-notice {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .security-notice h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .security-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .security-list li {
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        /* ========== ТРЕНИРОВКА ========== */
+        .scenario-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #10a37f;
+        }
+
+        .scenario-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .scenario-details {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        /* ========== РЕЙТИНГ ========== */
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .leaderboard-table th {
+            text-align: left;
+            padding: 12px 15px;
+            background: #e9ecef;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .leaderboard-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f0f2f5;
+        }
+
+        .player-you {
+            background: #e7f7f3 !important;
+            border-left: 4px solid #10a37f;
+        }
+
+        /* ========== АДАПТИВНОСТЬ ========== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .user-panel {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="result-icon">🎯</div>
+            <h2 class="result-title">Диалоговый тренажер</h2>
+            <p style="margin-bottom: 20px; color: #666;">Войдите или создайте аккаунт</p>
+            
+            <!-- ФОРМА ВХОДА -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>Никнейм:</label>
+                    <input type="text" id="loginUsername" placeholder="Ваш никнейм" value="test_user">
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="loginPassword" placeholder="Ваш пароль" value="test123">
+                </div>
+                <button class="btn btn-primary" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+                <p style="text-align: center; margin: 15px 0; color: #666;">Нет аккаунта?</p>
+                <button class="btn btn-secondary" id="showRegisterBtn">
+                    <i class="fas fa-user-plus"></i> Создать аккаунт
+                </button>
+            </div>
+            
+            <!-- ФОРМА РЕГИСТРАЦИИ -->
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>Никнейм:</label>
+                    <input type="text" id="registerUsername" placeholder="Придумайте никнейм">
+                    <div class="info-box">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Правила выбора никнейма:</h4>
+                        <ul class="rules-list">
+                            <li>Не менее 3 символов</li>
+                            <li>Без матерных слов</li>
+                            <li>Без оскорбительных выражений</li>
+                            <li>Без ссылок и рекламы</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="registerPassword" placeholder="Минимум 6 символов">
+                </div>
+                <div class="form-group">
+                    <label>Основная вертикаль:</label>
+                    <select id="registerVertical">
+                        <option value="">Выберите вертикаль</option>
+                        <option value="loyalty">💳 Программа лояльности</option>
+                        <option value="opk">🏪 ОПК</option>
+                        <option value="market">🛒 Маркет</option>
+                        <option value="foodtech">🥗 Фудтех</option>
+                        <option value="assembly">📦 Сборка</option>
+                        <option value="pharmacy">💊 Аптека</option>
+                    </select>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Выбор нельзя будет изменить. Это ваша основная тема для тренировок.
+                    </p>
+                </div>
+                <button class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-check"></i> Зарегистрироваться
+                </button>
+                <button class="btn btn-secondary" id="showLoginBtn">
+                    <i class="fas fa-arrow-left"></i> Назад ко входу
+                </button>
+            </div>
+            
+            <!-- ОБЛАСТЬ ДЛЯ СООБЩЕНИЙ -->
+            <div id="messageArea" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <div class="user-panel" id="userPanel">
+                <div class="user-info">
+                    <span id="currentUserName">Пользователь</span>
+                    <span class="vertical-badge" id="userVerticalBadge">Вертикаль</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            </div>
+            
+            <h1>💬 Диалоговый тренажер</h1>
+            <p>Корпоративная версия | Облачная синхронизация</p>
+        </div>
+
+        <div class="content">
+            <!-- ИНСТРУКЦИЯ ПО БЕЗОПАСНОСТИ -->
+            <div class="security-notice">
+                <h3><i class="fas fa-shield-alt"></i> 🔒 Безопасность в диалогах:</h3>
+                <p><strong>НЕ УКАЗЫВАЙТЕ:</strong></p>
+                <ul class="security-list">
+                    <li>Конфиденциальную информацию компании</li>
+                    <li>Персональные данные клиентов</li>
+                    <li>Коммерческую тайну</li>
+                    <li>Реальные имена, номера, адреса</li>
+                </ul>
+                <p><strong>Используйте только вымышленные данные!</strong></p>
+            </div>
+
+            <!-- НАВИГАЦИЯ -->
+            <div class="tabs">
+                <div class="tab active" data-tab="home">🏠 Главная</div>
+                <div class="tab" data-tab="training">🏋️ Тренировка</div>
+                <div class="tab" data-tab="progress">📊 Прогресс</div>
+                <div class="tab" data-tab="leaderboard">🏆 Рейтинг</div>
+            </div>
+
+            <!-- ВКЛАДКА: ГЛАВНАЯ -->
+            <div class="tab-content active" id="home-tab">
+                <div class="scenario-card">
+                    <div class="scenario-title">
+                        <i class="fas fa-home"></i>
+                        <span>Добро пожаловать!</span>
+                    </div>
+                    <div class="scenario-details">
+                        <p>Это корпоративный диалоговый тренажер для отработки навыков общения с клиентами.</p>
+                        <p>Все данные сохраняются в Google Sheets и доступны с любого устройства.</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value" id="homeSessions">0</div>
+                            <div class="label">Тренировок</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="homeScore">0/5</div>
+                            <div class="label">Средний балл</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="homeXP">0</div>
+                            <div class="label">Общий XP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="homeLevel">1</div>
+                            <div class="label">Уровень</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" data-tab="training">
+                            <i class="fas fa-play"></i> Начать тренировку
+                        </button>
+                        <button class="btn btn-secondary" data-tab="progress">
+                            <i class="fas fa-chart-line"></i> Мой прогресс
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ВКЛАДКА: ТРЕНИРОВКА -->
+            <div class="tab-content" id="training-tab">
+                <div class="scenario-card">
+                    <div class="scenario-title">
+                        <i class="fas fa-dumbbell"></i>
+                        <span>Тренировка</span>
+                    </div>
+                    
+                    <div class="scenario-details">
+                        <p><strong>Ваша вертикаль:</strong> <span id="trainingVertical" style="color: #10a37f;">ОПК</span></p>
+                        <p><strong>Сценарий:</strong> <span id="scenarioText">Клиент жалуется на грубость кассира</span></p>
+                        <p><strong>Задача:</strong> Определить тип клиента и адаптировать стиль общения.</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4><i class="fas fa-shield-alt"></i> Подтверждение безопасности</h4>
+                        <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 10px;">
+                            <input type="checkbox" id="securityConfirm" style="margin-top: 3px;">
+                            <label style="font-size: 13px;">
+                                Я подтверждаю, что не буду использовать реальные данные и конфиденциальную информацию в тренировочных диалогах.
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="copyPromptBtn" disabled>
+                            <i class="fas fa-copy"></i> Скопировать инструкцию
+                        </button>
+                        <button class="btn btn-primary" id="startTrainingBtn" disabled>
+                            <i class="fas fa-rocket"></i> Начать тренировку
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ВКЛАДКА: ПРОГРЕСС -->
+            <div class="tab-content" id="progress-tab">
+                <div class="scenario-card">
+                    <div class="scenario-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Ваш прогресс</span>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="value" id="progressLevel">1</div>
+                            <div class="label">Уровень</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="progressSessions">0</div>
+                            <div class="label">Тренировок</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="progressAvgScore">0/5</div>
+                            <div class="label">Средний балл</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="value" id="progressStreak">0</div>
+                            <div class="label">Дней подряд</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ВКЛАДКА: РЕЙТИНГ -->
+            <div class="tab-content" id="leaderboard-tab">
+                <div class="scenario-card">
+                    <div class="scenario-title">
+                        <i class="fas fa-trophy"></i>
+                        <span>Таблица лидеров</span>
+                    </div>
+                    
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <select id="leaderboardFilter" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                                <option value="all">Все вертикали</option>
+                                <option value="loyalty">Лояльность</option>
+                                <option value="opk">ОПК</option>
+                                <option value="market">Маркет</option>
+                            </select>
+                            <select id="leaderboardPeriod" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                                <option value="all">За всё время</option>
+                                <option value="week">За неделю</option>
+                                <option value="month">За месяц</option>
+                            </select>
+                        </div>
+                        
+                        <div id="leaderboardContainer">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Загрузка рейтинга...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============= КОНФИГУРАЦИЯ =============
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwslHmFmvxAZA2o0qpP7F87I5w9A_1_L5GMZvWPAuxu3gOf0blRa4mypeAc-AmKP3HQ/exec';
+        
+        // Вертикали
+        const VERTICALS = {
+            loyalty: { name: 'Программа лояльности', icon: '💳', color: '#4CAF50' },
+            opk: { name: 'ОПК', icon: '🏪', color: '#2196F3' },
+            market: { name: 'Маркет', icon: '🛒', color: '#FF9800' },
+            foodtech: { name: 'Фудтех', icon: '🥗', color: '#9C27B0' },
+            assembly: { name: 'Сборка', icon: '📦', color: '#795548' },
+            pharmacy: { name: 'Аптека', icon: '💊', color: '#F44336' }
+        };
+        
+        // Промты для каждой вертикали
+        const PROMPTS = {
+            loyalty: `Привет! Давай сыграем в ролевую игру. Ты будешь клиентом, у которого заблокировали карту лояльности...`,
+            opk: `Привет! Давай сыграем в ролевую игру. Ты будешь клиентом, которому нагрубил кассир...`,
+            market: `Привет! Давай сыграем в ролевую игру. Ты будешь клиентом, которому доставили заказ, но забыли положить корм для кота...`
+        };
+        
+        // Глобальные переменные
+        let currentUser = null;
+        let progressChart = null;
+        
+        // ============= УТИЛИТЫ =============
+        function showMessage(message, type = 'success') {
+            const messageArea = document.getElementById('messageArea');
+            const messageClass = type === 'success' ? 'success-message' : 'error-message';
+            const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+            
+            messageArea.innerHTML = `
+                <div class="${messageClass}">
+                    <i class="fas fa-${icon}"></i> ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+        
+        function showLoading(elementId, show = true) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (show) {
+                element.innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Загрузка...</p>
+                    </div>
+                `;
+            } else {
+                element.innerHTML = '';
+            }
+        }
+        
+        // ============= GOOGLE SHEETS API =============
+        async function callGoogleScript(action, data = {}) {
+            console.log(`📤 Отправка: ${action}`, data);
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        ...data
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log(`📥 Ответ: ${action}`, result);
+                return result;
+                
+            } catch (error) {
+                console.error('❌ Ошибка Google Script:', error);
+                return {
+                    success: false,
+                    message: `Ошибка соединения: ${error.message}`
+                };
+            }
+        }
+        
+        // ============= АУТЕНТИФИКАЦИЯ =============
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username) {
+                showMessage('Введите никнейм', 'error');
+                return;
+            }
+            
+            if (!password) {
+                showMessage('Введите пароль', 'error');
+                return;
+            }
+            
+            showMessage('Выполняется вход...', 'success');
+            
+            try {
+                const result = await callGoogleScript('login', {
+                    username: username,
+                    password: password
+                });
+                
+                if (result.success) {
+                    currentUser = result.data.user;
+                    localStorage.setItem('dialogue_user', JSON.stringify(currentUser));
+                    
+                    showMessage(`Добро пожаловать, ${username}!`, 'success');
+                    
+                    // Переключаем на основное приложение
+                    document.getElementById('authModal').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'block';
+                    
+                    // Обновляем интерфейс
+                    updateUserInterface();
+                    loadUserData();
+                    
+                } else {
+                    showMessage(result.message || 'Ошибка входа', 'error');
+                }
+                
+            } catch (error) {
+                showMessage('Ошибка сети. Проверьте подключение.', 'error');
+            }
+        }
+        
+        async function handleRegister() {
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const vertical = document.getElementById('registerVertical').value;
+            
+            // Валидация
+            if (!username) {
+                showMessage('Введите никнейм', 'error');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showMessage('Никнейм должен быть не менее 3 символов', 'error');
+                return;
+            }
+            
+            if (!password || password.length < 6) {
+                showMessage('Пароль должен быть не менее 6 символов', 'error');
+                return;
+            }
+            
+            if (!vertical) {
+                showMessage('Выберите вертикаль', 'error');
+                return;
+            }
+            
+            showMessage('Регистрация...', 'success');
+            
+            try {
+                const result = await callGoogleScript('register', {
+                    username: username,
+                    password: password,
+                    vertical: vertical
+                });
+                
+                if (result.success) {
+                    showMessage('Регистрация успешна! Теперь войдите.', 'success');
+                    
+                    // Переключаем на форму входа
+                    showLoginForm();
+                    document.getElementById('loginUsername').value = username;
+                    document.getElementById('loginPassword').value = password;
+                    
+                } else {
+                    showMessage(result.message || 'Ошибка регистрации', 'error');
+                }
+                
+            } catch (error) {
+                showMessage('Ошибка регистрации', 'error');
+            }
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('messageArea').innerHTML = '';
+        }
+        
+        function showLoginForm() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('messageArea').innerHTML = '';
+        }
+        
+        function logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                currentUser = null;
+                localStorage.removeItem('dialogue_user');
+                
+                document.getElementById('mainContainer').style.display = 'none';
+                document.getElementById('authModal').style.display = 'flex';
+                
+                showMessage('Вы вышли из системы', 'success');
+            }
+        }
+        
+        // ============= ОСНОВНЫЕ ФУНКЦИИ =============
+        function updateUserInterface() {
+            if (!currentUser) return;
+            
+            // Обновляем панель пользователя
+            document.getElementById('currentUserName').textContent = currentUser.username;
+            
+            const vertical = VERTICALS[currentUser.vertical];
+            if (vertical) {
+                document.getElementById('userVerticalBadge').textContent = vertical.name;
+                document.getElementById('userVerticalBadge').style.backgroundColor = vertical.color + '20';
+                document.getElementById('userVerticalBadge').style.color = vertical.color;
+                document.getElementById('trainingVertical').textContent = vertical.name;
+            }
+        }
+        
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            try {
+                // Загружаем статистику
+                const result = await callGoogleScript('getUserStats', {
+                    userId: currentUser.id
+                });
+                
+                if (result.success) {
+                    // Обновляем статистику на главной
+                    const stats = result.data.stats;
+                    document.getElementById('homeSessions').textContent = stats.sessions || 0;
+                    document.getElementById('homeScore').textContent = stats.avgScore ? stats.avgScore.toFixed(1) + '/5' : '0/5';
+                    document.getElementById('homeXP').textContent = stats.totalXP || 0;
+                    document.getElementById('homeLevel').textContent = stats.level || 1;
+                    
+                    // Обновляем прогресс
+                    document.getElementById('progressLevel').textContent = stats.level || 1;
+                    document.getElementById('progressSessions').textContent = stats.sessions || 0;
+                    document.getElementById('progressAvgScore').textContent = stats.avgScore ? stats.avgScore.toFixed(1) + '/5' : '0/5';
+                    document.getElementById('progressStreak').textContent = stats.streak || 0;
+                    
+                    // Строим график
+                    renderProgressChart(result.data.history);
+                    
+                } else {
+                    console.warn('Не удалось загрузить статистику:', result.message);
+                }
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+            }
+        }
+        
+        function renderProgressChart(history) {
+            const ctx = document.getElementById('progressChart');
+            if (!ctx || !history || history.length === 0) return;
+            
+            if (progressChart) {
+                progressChart.destroy();
+            }
+            
+            // Подготавливаем данные
+            const dates = history.map(h => new Date(h.date).toLocaleDateString('ru-RU'));
+            const scores = history.map(h => h.score);
+            
+            progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Оценки',
+                        data: scores,
+                        borderColor: '#10a37f',
+                        backgroundColor: 'rgba(16, 163, 127, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: {
+                                display: true,
+                                text: 'Оценка'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function loadLeaderboard() {
+            showLoading('leaderboardContainer', true);
+            
+            try {
+                const filter = document.getElementById('leaderboardFilter').value;
+                const result = await callGoogleScript('getLeaderboard', {
+                    vertical: filter === 'all' ? null : filter
+                });
+                
+                if (result.success) {
+                    renderLeaderboard(result.data);
+                } else {
+                    document.getElementById('leaderboardContainer').innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${result.message || 'Не удалось загрузить рейтинг'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                document.getElementById('leaderboardContainer').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Ошибка загрузки рейтинга
+                    </div>
+                `;
+            }
+        }
+        
+        function renderLeaderboard(users) {
+            if (!users || users.length === 0) {
+                document.getElementById('leaderboardContainer').innerHTML = `
+                    <p style="text-align: center; padding: 40px; color: #666;">
+                        Пока нет данных для отображения
+                    </p>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Сотрудник</th>
+                            <th>Вертикаль</th>
+                            <th>Тренировок</th>
+                            <th>XP</th>
+                            <th>Уровень</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach((user, index) => {
+                const isCurrent = currentUser && user.username === currentUser.username;
+                const vertical = VERTICALS[user.vertical];
+                const rowClass = isCurrent ? 'player-you' : '';
+                
+                html += `
+                    <tr class="${rowClass}">
+                        <td>${index + 1}</td>
+                        <td>${user.username} ${isCurrent ? '<span style="color: #10a37f;">(Вы)</span>' : ''}</td>
+                        <td>${vertical ? vertical.icon + ' ' + vertical.name : user.vertical}</td>
+                        <td>${user.sessions}</td>
+                        <td><strong>${user.totalXP}</strong></td>
+                        <td>${user.level}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('leaderboardContainer').innerHTML = html;
+        }
+        
+        // ============= ТРЕНИРОВКА =============
+        function setupTrainingTab() {
+            const securityCheckbox = document.getElementById('securityConfirm');
+            const copyBtn = document.getElementById('copyPromptBtn');
+            const startBtn = document.getElementById('startTrainingBtn');
+            
+            if (securityCheckbox && copyBtn && startBtn) {
+                // Сброс состояния
+                securityCheckbox.checked = false;
+                copyBtn.disabled = true;
+                startBtn.disabled = true;
+                
+                // Обработчик чекбокса безопасности
+                securityCheckbox.addEventListener('change', function() {
+                    copyBtn.disabled = !this.checked;
+                });
+                
+                // Кнопка копирования промта
+                copyBtn.addEventListener('click', function() {
+                    if (!currentUser || !PROMPTS[currentUser.vertical]) {
+                        showMessage('Нет промта для вашей вертикали', 'error');
+                        return;
+                    }
+                    
+                    const promptText = PROMPTS[currentUser.vertical];
+                    
+                    navigator.clipboard.writeText(promptText)
+                        .then(() => {
+                            showMessage('Промт скопирован!', 'success');
+                            copyBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано';
+                            copyBtn.disabled = true;
+                            startBtn.disabled = false;
+                        })
+                        .catch(err => {
+                            showMessage('Ошибка копирования', 'error');
+                        });
+                });
+                
+                // Кнопка начала тренировки
+                startBtn.addEventListener('click', async function() {
+                    showMessage('Тренировка начата! Откройте DeepSeek...', 'success');
+                    window.open('https://chat.deepseek.com', '_blank');
+                    
+                    // Через 2 секунды предлагаем завершить
+                    setTimeout(async () => {
+                        const score = prompt('Введите оценку от DeepSeek (1-5):');
+                        const numericScore = parseInt(score);
+                        
+                        if (score && numericScore >= 1 && numericScore <= 5) {
+                            try {
+                                const result = await callGoogleScript('saveTraining', {
+                                    userId: currentUser.id,
+                                    score: numericScore,
+                                    vertical: currentUser.vertical,
+                                    scenario: 'Стандартный сценарий'
+                                });
+                                
+                                if (result.success) {
+                                    showMessage(`Тренировка сохранена! +${result.data.xpEarned} XP`, 'success');
+                                    loadUserData(); // Обновляем статистику
+                                }
+                                
+                            } catch (error) {
+                                showMessage('Ошибка сохранения тренировки', 'error');
+                            }
+                        }
+                    }, 2000);
+                });
+            }
+        }
+        
+        // ============= УПРАВЛЕНИЕ ВКЛАДКАМИ =============
+        function switchTab(tabName) {
+            // Снимаем активный класс со всех вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Добавляем активный класс выбранной вкладке
+            const activeTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+            const activeContent = document.getElementById(`${tabName}-tab`);
+            
+            if (activeTab) activeTab.classList.add('active');
+            if (activeContent) activeContent.classList.add('active');
+            
+            // Особые действия для вкладок
+            if (tabName === 'training') {
+                setupTrainingTab();
+            } else if (tabName === 'leaderboard') {
+                loadLeaderboard();
+            }
+        }
+        
+        // ============= ИНИЦИАЛИЗАЦИЯ =============
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Диалоговый тренажер запущен!');
+            
+            // Проверяем сохраненного пользователя
+            const savedUser = localStorage.getItem('dialogue_user');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    document.getElementById('authModal').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'block';
+                    updateUserInterface();
+                    loadUserData();
+                    console.log('👤 Пользователь восстановлен:', currentUser.username);
+                } catch (e) {
+                    console.warn('Ошибка восстановления пользователя');
+                }
+            }
+            
+            // Назначаем обработчики для аутентификации
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('registerBtn').addEventListener('click', handleRegister);
+            document.getElementById('showRegisterBtn').addEventListener('click', showRegisterForm);
+            document.getElementById('showLoginBtn').addEventListener('click', showLoginForm);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            // Назначаем обработчики для вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+            
+            // Назначаем обработчики для кнопок с data-tab
+            document.querySelectorAll('[data-tab]').forEach(btn => {
+                if (btn.tagName === 'BUTTON') {
+                    btn.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        switchTab(tabName);
+                    });
+                }
+            });
+            
+            // Обработчики фильтров рейтинга
+            document.getElementById('leaderboardFilter')?.addEventListener('change', loadLeaderboard);
+            document.getElementById('leaderboardPeriod')?.addEventListener('change', loadLeaderboard);
+            
+            // Обработчики Enter для полей ввода
+            document.getElementById('loginUsername').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            // Тестируем подключение к Google Script
+            console.log('🔗 Тестирую Google Script...');
+            fetch(GOOGLE_SCRIPT_URL)
+                .then(r => r.json())
+                .then(d => console.log('✅ Google Script работает:', d))
+                .catch(e => console.error('❌ Google Script недоступен:', e));
+                
+            console.log('✅ Все обработчики назначены!');
+        });
+    </script>
+</body>
+</html>
